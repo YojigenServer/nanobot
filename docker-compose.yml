@@ -1,0 +1,28 @@
+services:
+  nanobot-gateway:
+    image: ghcr.io/yojigenserver/nanobot:latest
+    container_name: nanobot-gateway
+    volumes:
+      - .nanobot:/root/.nanobot
+    command: ["gateway"]
+    restart: always
+    # ports:
+    #   - 18790:18790
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1G
+        reservations:
+          cpus: 0.25
+          memory: 256M
+
+  nanobot-cli:
+    image: ghcr.io/yojigenserver/nanobot:latest
+    volumes:
+      - .nanobot:/root/.nanobot
+    profiles:
+      - cli
+    command: ["status"]
+    stdin_open: true
+    tty: true

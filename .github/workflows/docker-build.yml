@@ -1,0 +1,73 @@
+name: Docker Multi-Arch Build
+
+on:
+  schedule:
+    # 每天 UTC 0:00 运行 (北京时间 8:00)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build'
+        required: true
+        default: 'main'
+        type: choice
+        options:
+          - main
+          - release
+      specific_tag:
+        description: 'Specific release tag (optional, only for release branch)'
+        required: false
+        type: string
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/nanobot
+  PLATFORMS: linux/amd64,linux/arm64
+  MIN_RELEASE_VERSION: v0.1.4.post4
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build main (nightly)
+        if: github.event_name == 'schedule' || github.event.inputs.branch == 'main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x build-docker.sh
+          ./build-docker.sh main
+
+      - name: Build release (check all versions)
+        if: (github.event_name == 'schedule' || github.event.inputs.branch == 'release') && github.event.inputs.specific_tag == ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x build-docker.sh
+          ./build-docker.sh release
+
+      - name: Build specific release version
+        if: github.event.inputs.branch == 'release' && github.event.inputs.specific_tag != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x build-docker.sh
+          ./build-docker.sh release "${{ github.event.inputs.specific_tag }}"
