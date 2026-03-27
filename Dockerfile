@@ -40,13 +40,13 @@ WORKDIR /app
 # 安装 Python 依赖
 COPY nanobot/pyproject.toml nanobot/README.md nanobot/LICENSE ./
 RUN mkdir -p nanobot bridge && touch nanobot/__init__.py && \
-    uv pip install --system --no-cache . nanobot-ai[wecom] .[weixin] && \
+    uv pip install --system --no-cache . nanobot-ai[wecom] nanobot-ai[weixin] nanobot-ai[matrix] && \
     rm -rf nanobot bridge
 
 # 复制源码
 COPY nanobot/nanobot/ nanobot/
 COPY nanobot/bridge/ bridge/
-RUN uv pip install --system --no-cache . nanobot-ai[wecom] .[weixin]
+RUN uv pip install --system --no-cache . nanobot-ai[wecom] nanobot-ai[weixin] nanobot-ai[matrix]
 
 # 创建 bridge 目录
 RUN mkdir -p bridge
