@@ -2,8 +2,8 @@ FROM alpine:3.23.3 AS builder
 
 # 安装构建依赖
 RUN apk add --no-cache \
-    nodejs=24.13.0-r1 \
-    npm=11.11.0-r0 \
+    nodejs~24 \
+    npm~11 \
     git \
     ca-certificates
 
@@ -19,9 +19,9 @@ FROM alpine:3.23.3
 
 # 安装运行时依赖
 RUN apk add --no-cache \
-    nodejs=24.13.0-r1 \
-    npm=11.11.0-r0 \
-    python3=3.12.12-r0 \
+    nodejs~24 \
+    npm~11 \
+    python3~3.12 \
     py3-pip \
     git \
     uv \
@@ -40,13 +40,13 @@ WORKDIR /app
 # 安装 Python 依赖
 COPY nanobot/pyproject.toml nanobot/README.md nanobot/LICENSE ./
 RUN mkdir -p nanobot bridge && touch nanobot/__init__.py && \
-    uv pip install --system --no-cache . nanobot-ai[wecom] && \
+    uv pip install --system --no-cache . nanobot-ai[wecom] .[weixin] && \
     rm -rf nanobot bridge
 
 # 复制源码
 COPY nanobot/nanobot/ nanobot/
 COPY nanobot/bridge/ bridge/
-RUN uv pip install --system --no-cache . nanobot-ai[wecom]
+RUN uv pip install --system --no-cache . nanobot-ai[wecom] .[weixin]
 
 # 创建 bridge 目录
 RUN mkdir -p bridge

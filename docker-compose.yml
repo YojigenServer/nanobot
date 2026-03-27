@@ -6,8 +6,6 @@ services:
       - .nanobot:/root/.nanobot
     command: ["gateway"]
     restart: always
-    # ports:
-    #   - 18790:18790
     deploy:
       resources:
         limits:
